@@ -61,3 +61,16 @@ Or run it automagically with guard
 ```sh
 bundle exec guard
 ```
+
+# Why Rack::Doorman
+
+1. We have a quite a few Jekyll sites that are basic auth password protected. Safelisting IP ranges to allow people to view them seemed useful
+2. We need to be able to open up our (food) prototype to specific IP ranges of stores without a password
+
+# How does it work
+
+Jekyll is built on top of rack so this is a rack middleware that is inserted before the site is served to do some checks.
+
+It's actually a copy of `Rack::Access` with the addition of the option to fall back to basic auth.
+
+The gem is also based on a pettern that was used on the [Wills](https://gitlab.digitalplatform.coop.co.uk/Wills/wills) Project
