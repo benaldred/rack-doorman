@@ -20,31 +20,65 @@ describe 'Rack::Doorman' do
 
   describe 'basic auth enabled' do
 
-    before do
-      ENV['USERNAME'] = 'coop'
-      ENV['PASSWORD'] = 'notforsharing'
+    describe 'using username and password' do
+
+      before do
+        ENV['USERNAME'] = 'coop'
+        ENV['PASSWORD'] = 'notforsharing'
+      end
+
+      it "allows approved ip addresses" do
+        get '/', {}, 'REMOTE_ADDR' =>  '1.2.3.4'
+        last_response.status.must_equal 200
+      end
+
+      it 'prompts for basic auth' do
+        get '/'
+        last_response.status.must_equal 401
+      end
+
+      it 'prompts for basic auth on bad login' do
+        authorize 'coop', 'foooo'
+        get '/'
+        last_response.status.must_equal 401
+      end
+
+      it 'allows login using username and password' do
+        authorize 'coop', 'notforsharing'
+        get '/'
+        last_response.status.must_equal 200
+      end
     end
 
-    it "allows approved ip addresses" do
-      get '/', {}, 'REMOTE_ADDR' =>  '1.2.3.4'
-      last_response.status.must_equal 200
-    end
 
-    it 'prompts for basic auth' do
-      get '/'
-      last_response.status.must_equal 401
-    end
+    describe 'using array of credentials' do
 
-    it 'prompts for basic auth on bad login' do
-      authorize 'coop', 'foooo'
-      get '/'
-      last_response.status.must_equal 401
-    end
+      before do
+        ENV['USERNAME'] = nil
+        ENV['CREDENTIALS'] = 'coop:notforsharing,other:foo'
+      end
 
-    it 'allows login using username and password' do
-      authorize 'coop', 'notforsharing'
-      get '/'
-      last_response.status.must_equal 200
+      it "allows approved ip addresses" do
+        get '/', {}, 'REMOTE_ADDR' =>  '1.2.3.4'
+        last_response.status.must_equal 200
+      end
+
+      it 'prompts for basic auth' do
+        get '/'
+        last_response.status.must_equal 401
+      end
+
+      it 'prompts for basic auth on bad login' do
+        authorize 'coop', 'foooo'
+        get '/'
+        last_response.status.must_equal 401
+      end
+
+      it 'allows login using username and password' do
+        authorize 'coop', 'notforsharing'
+        get '/'
+        last_response.status.must_equal 200
+      end
     end
   end
 end

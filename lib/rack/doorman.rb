@@ -55,7 +55,7 @@ module Rack
 
 
 
-      if ENV['USERNAME'] && ENV['PASSWORD'] # we want to auth as fallback
+      if (ENV['USERNAME'] && ENV['PASSWORD']) || ENV['CREDENTIALS'] # we want to auth as fallback
         if ip_authorized?(ipmasks)
           [status, headers, body]
         elsif authorized?(env)
@@ -101,7 +101,15 @@ module Rack
 
     def authorized?(env)
       auth = Rack::Auth::Basic::Request.new(env)
-      auth.provided? && auth.basic? && auth.credentials && auth.credentials == [ENV['USERNAME'], ENV['PASSWORD']]
+      return false unless auth.provided? && auth.basic? && auth.credentials
+      if ENV['USERNAME']
+        auth.credentials == [ENV['USERNAME'], ENV['PASSWORD']]
+      elsif ENV['CREDENTIALS']
+        credentials = ENV['CREDENTIALS'].split(",").map {|c| c.split(':')}
+        credentials.include?(auth.credentials)
+      else
+        false
+      end
     end
   end
 end
